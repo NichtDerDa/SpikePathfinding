@@ -261,7 +261,8 @@ class MyPaintWidget(Widget):
     def clear_selected(self):
         for wd in self.selected:
                 self.remove_widget(wd)
-                self.lines.remove(wd)
+                if wd in self.lines:
+                    self.lines.remove(wd)
         self.selected = []
         self.build()
 
@@ -454,7 +455,7 @@ class MyPaintWidget(Widget):
         self.add_widget(self.cur_line)
 
     def add_turn(self):
-        self.lines.append(["turn", self.last_angle, self.new_angle, self.last_point])
+        self.lines.append(["turn", self.last_angle, self.new_angle, self.last_point, False])
         self.cur_line = None
 
     def set_RV(self, rv):
@@ -519,7 +520,7 @@ class MyApp(App):
         self.build_top_buttons()
         self.main_layout.add_widget(self.top_layout)
 
-        self.image = MyPaintWidget("image.png", self, size_hint_y=0.8, pos_hint={"x": 0.0, "y":1.0})
+        self.image = MyPaintWidget("image.jpg", self, size_hint_y=0.8, pos_hint={"x": 0.0, "y":1.0})
         self.main_layout.add_widget(self.image)
         # Add the RV to the image layout
         self.RV = RV(self.image, size_hint_y=0.2)
@@ -762,14 +763,15 @@ db = DriveBase(hub, 'A', 'B')
                         file.write(f"def start_function():\n")
                         data = data + f"def start_function():\n"
                 if line[0] == "line":
-                    type_, start, end, color, select = line
+                    type_, start, end, color, selected = line
                     distance_px = sqrt((end[0] - start[0])**2 + (end[1] - start[1])**2)
                     distance_mm = distance_px / pixel_per_mm
                     distance_mm *= 100
                     file.write(f"   db.drive({distance_mm:.2f}, 1100)\n")
                     data = data + f"    db.drive({distance_mm:.2f}, 1100)\n"
                 if line[0] == "turn":
-                    type_, angle1, angle2, pos, select = line
+                    print(line)
+                    type_, angle1, angle2, pos, selected = line
                     turn = self.calc_degrees(angle1, angle2)
                     file.write(f"   db.turn({turn:.2f}, 1100)\n")
                     data = data + f"    db.turn({turn:.2f}, 1100)\n"
